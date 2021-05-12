@@ -89,6 +89,5 @@ def test_connection():
             continue
 
 if __name__ == '__main__':
-    update_header()
     test_connection()
     test_func()

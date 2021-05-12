@@ -4,6 +4,7 @@ Author: Nan Li
 Contact: linan.lqq0@gmail.com
 '''
 
+global headers
 headers = [
     {
         # Android 4.0.2
