@@ -5,7 +5,11 @@ Contact: linan.lqq0@gmail.com
 '''
 # import packages
 import re
+import time
 import pandas as pd
+from headers import headers
+from datetime import datetime
+from seleniumwire import webdriver
 
 # short names dictionary
 address_dict = ({'road':'rd', 'street':'st', 'place':'pl', 'avenue':'ave',
@@ -18,7 +22,7 @@ address_dict = ({'road':'rd', 'street':'st', 'place':'pl', 'avenue':'ave',
 def readPostcode(file_name):
     postcode = pd.read_excel(file_name).sort_values(by=['Postcode'])
     postcode = postcode.values
-    postcode = postcode[:,0]
+    postcode = postcode[:,0].astype(int)
     return postcode
 
 # function to create valid url according to postcode
@@ -76,3 +80,80 @@ def createHouseUrl1(address, suburb, postcode, use_short):
 def createHouseUrl2(REA_id):
     url = 'https://www.realestate.com.au/property/lookup?id={:d}'.format(REA_id)
     return url
+
+def get_cookie(url, user_agent):
+    options = webdriver.ChromeOptions()
+    options.add_argument("--window-size=100x100")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
+    driver = webdriver.Chrome(options=options)
+    driver._orig_get = driver.get
+    def _get_wrapped(*args, **kwargs):
+        if driver.execute_script("return navigator.webdriver"):
+            driver.execute_cdp_cmd(
+                "Page.addScriptToEvaluateOnNewDocument",
+                {
+                    "source": """
+                                Object.defineProperty(window, 'navigator', {
+                                    value: new Proxy(navigator, {
+                                    has: (target, key) => (key === 'webdriver' ? false : key in target),
+                                    get: (target, key) =>
+                                        key === 'webdriver'
+                                        ? undefined
+                                        : typeof target[key] === 'function'
+                                        ? target[key].bind(target)
+                                        : target[key]
+                                    })
+                                });
+                            """
+                },
+            )
+        return driver._orig_get(*args, **kwargs)
+    driver.get = _get_wrapped
+    driver.get = _get_wrapped
+    driver.get = _get_wrapped
+    original_user_agent_string = driver.execute_script(
+        "return navigator.userAgent"
+    )
+    driver.execute_cdp_cmd(
+        "Network.setUserAgentOverride",
+        {
+            "userAgent": original_user_agent_string.replace("Headless", ""),
+        },
+    )
+    driver.execute_cdp_cmd(
+        "Page.addScriptToEvaluateOnNewDocument",
+        {
+            "source": """
+                            Object.defineProperty(navigator, 'maxTouchPoints', {
+                                get: () => 1
+                        })"""
+        },
+    )
+
+    def interceptor(request):
+        del request.headers['user-agent']
+        request.headers['user-agent'] = user_agent
+        # Block PNG, JPEG and GIF images
+        if request.path.endswith(('.png', '.jpg', '.gif')):
+            request.abort()
+
+    driver.request_interceptor = interceptor
+    driver.get(url)
+    time.sleep(1) # wait for cookies loaded
+    for request in driver.requests:
+        if request.response.status_code == 200:
+            cookie = re.search(r"(bm_aksd=[\S]+);", str(request.response.headers))
+            if cookie is not None:
+                cookie = cookie.group(1)
+                break
+    driver.quit()
+    return cookie
+
+def update_cookie(old, new):
+    with open("headers.py", "r") as f:
+        data = f.read()
+        data = re.sub(old, new, data)
+        
+    with open("headers.py", "w") as f:
+        f.write(data)

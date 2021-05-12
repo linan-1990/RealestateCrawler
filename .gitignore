@@ -1,4 +1,6 @@
 __pycache__/
+Results/
+error log/
 .vscode
 *.html
 *.log

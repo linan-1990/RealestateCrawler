@@ -1,6 +1,6 @@
-SELECT COUNT(*) FROM aus_sold_houses.northern_territory
-WHERE REA_id is not Null
-ORDER BY id DESC;
+SELECT * FROM aus_sold_houses.northern_territory
+WHERE LOWER(house_type) LIKE 'apartment' and year(sold_date)>2019
+ORDER BY sold_price DESC;
 
 SET SQL_SAFE_UPDATES = 0;
 DELETE FROM aus_sold_houses.northern_territory

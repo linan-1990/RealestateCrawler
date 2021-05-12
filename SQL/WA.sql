@@ -1,5 +1,6 @@
 SELECT * FROM aus_sold_houses.western_australia
-ORDER BY id DESC;
+WHERE sold_date is NULL and time > '2020-01-28 00:00:00'
+ORDER BY id desc;
 
 SET SQL_SAFE_UPDATES = 0;
 DELETE FROM aus_sold_houses.western_australia

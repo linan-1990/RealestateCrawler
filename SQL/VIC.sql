@@ -1,5 +1,17 @@
 SELECT * FROM aus_sold_houses.victoria
-ORDER BY id;
+WHERE time > '2020-05-28 00:00:00'
+ORDER BY sold_date DESC;
+
+SELECT YEAR(sold_date) as year, COUNT(*) AS total_sold, AVG(sold_price) as avg_price
+FROM aus_sold_houses.victoria
+WHERE sold_date is not null and sold_price is not null AND YEAR(sold_date) > 2007
+AND sold_price < 100000000 and sold_price > 10000 AND
+(LOWER(house_type) LIKE 'house' OR LOWER(house_type) LIKE 'townhouse' OR LOWER(house_type) LIKE 'unit')
+GROUP BY YEAR(sold_date) ORDER BY YEAR(sold_date);
+
+SELECT * FROM aus_sold_houses.victoria
+WHERE postcode = 3150 and lower(address) like '%campbell%'
+ORDER BY sold_date DESC;
 
 SELECT COUNT(*) FROM aus_sold_houses.victoria
 WHERE land_size is not Null or floor_area is not Null or year_built is not Null

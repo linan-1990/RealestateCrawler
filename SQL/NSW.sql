@@ -1,11 +1,10 @@
 SELECT * FROM aus_sold_houses.new_south_wales
-WHERE REA_id is not null
-ORDER BY id DESC;
+ORDER BY time DESC;
 
 SELECT COUNT(*) FROM aus_sold_houses.new_south_wales;
 
 SELECT COUNT(*) FROM aus_sold_houses.new_south_wales
-WHERE time > '2018-08-29 00:00:00'
+WHERE time > '2020-01-29 00:00:00'
 ORDER BY time DESC;
 
 SET SQL_SAFE_UPDATES = 0;

@@ -9,62 +9,46 @@ import os
 import re
 import time
 import mysql.connector
+from random import randrange
 from datetime import datetime
+from functools import partial
+from multiprocessing import Pool
+from mysql.connector import pooling
 from mysql.connector import errorcode
-from classes import Request, ExtractListPage, House, LandInfo
-from functions import readPostcode, createUrl, createHouseUrl1, createHouseUrl2
+from functions import readPostcode, createUrl
+from classes import ExtractListPage, ExtractHouseURL, ExtractHouseInfo
 
 # change working directory to current folder
 os.chdir(os.path.dirname(__file__))
 
-# main function of scrawler
-def main(state, update):
-    # connect mySQL database
-    try:
-        con=mysql.connector.connect(user='root',password='asdfghjkl;\'',database='aus_sold_houses')
-        print("Database connected sucessfully!")
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Something is wrong with your user name or password")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Database does not exist")
-        else:
-            print(err)
-        exit()
-    # create table if not exist
-    try:
-        sql = """ CREATE TABLE {} (
-            id INTEGER AUTO_INCREMENT PRIMARY KEY,
-            house_id INTEGER UNIQUE,
-            REA_id INTEGER UNIQUE,
-            address VARCHAR(100),
-            suburb VARCHAR(50),
-            postcode INTEGER,
-            house_type VARCHAR(20),
-            bedroom INTEGER,
-            bathroom INTEGER,
-            parking INTEGER,
-            land_size INTEGER,
-            floor_area INTEGER,
-            year_built INTEGER,
-            sold_price INTEGER,
-            sold_date DATE,
-            agency VARCHAR(100),
-            latitude DOUBLE PRECISION,
-            longitude DOUBLE PRECISION,
-            link VARCHAR(200),
-            time TIMESTAMP ) """.format(state)
-        cursor = con.cursor()
-        cursor.execute(sql)
-        print('create table successfully!')
-    except:
-        print('table already exist!')
-        pass
+# connect mySQL database
+try:
+    connection_pool = mysql.connector.pooling.MySQLConnectionPool(pool_name="mysql_pool",
+                                                                pool_size=5,
+                                                                pool_reset_session=True,
+                                                                host='localhost',
+                                                                database='aus_sold_houses',
+                                                                user='root',
+                                                                password='1LoveBMW',
+                                                                autocommit=True)
+    #print("Connection Pool Size - ", connection_pool.pool_size)
+    #print("Database connected sucessfully!")
+except mysql.connector.Error as err:
+    if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+        print("Something is wrong with your user name or password")
+    elif err.errno == errorcode.ER_BAD_DB_ERROR:
+        print("Database does not exist")
+    else:
+        print(err)
+    exit()
 
+# main function of scrawler
+def main(state, start_date):
     # scrape data according to postcode
-    house_count = 0
+    print('Start ' + state)
     file_name = './Postcode/{}.xlsx'.format(state)
     postcodes = readPostcode(file_name)
+    house_url = ''
     for postcode in postcodes:
         print(postcode)
         page = 1
@@ -72,289 +56,233 @@ def main(state, update):
             url = createUrl(postcode, page)
             while True:
                 try:
-                    list_page = ExtractListPage(url)
+                    list_page = ExtractListPage(url, randrange(23))
                     break
                 except:
-                    time.sleep(5)
+                    time.sleep(1)
                     continue
+            firstdate = list_page.getFirstSoldDate()
+            if firstdate is not None and firstdate < start_date:
+                print('Postcode {:d} done! Total: {:d} pages!'.format(postcode, page-1), datetime.now())
+                break
             nextpage = list_page.getNextPage()
             houselinks = list_page.getHouseLink()
-            for house_link in houselinks:
-                house_url = 'https://www.realestate.com.au' + house_link.get('href')
-                while True:
-                    try:
-                        house = House(house_url)
-                        break
-                    except:
-                        time.sleep(5)
-                        continue
-                try:
-                    # try to extract house infos from webpage
-                    house_id = house.getHouseID()
-                    REA_id = house.getREAID()
-                    address = house.getAddress()
-                    suburb, post_code = house.getSuburb()
-                    if post_code != postcode:
-                        continue
-                    housetype = house.getHouseType()
-                    bedroom, bathroom, parking = house.getFeatures()
-                    soldprice = house.getSoldPrice()
-                    solddate = house.getSoldDate()
-                    agency = house.getAgency()
-                    latitude, longitude = house.getLocation()
-                    if REA_id is not None:
-                        land_url = createHouseUrl2(REA_id)
-                        land_info = LandInfo(land_url)
-                        if land_info.status_code == 200:
-                            land_url = land_info.redir_url
-                            land_info = LandInfo(land_url)
-                            if land_info.status_code == 200:
-                                land_size, floor_area, year_built = land_info.getLandInfo()
-                                print(land_info.header_no, land_info.getLandInfo(), datetime.now())
-                                time.sleep(0.001)
-                            elif land_info.status_code == 400:
-                                print(land_info.header_no, datetime.now())
-                                break
-                        elif land_info.status_code == 400:
-                            print(land_info.header_no, datetime.now())
-                            break
-                    else:
-                        land_size = 0
-                        floor_area = 0
-                        year_built = 0
-                    # save to mySQL database
-                    sql = """INSERT INTO {} (
-                        house_id, REA_id, address, suburb, postcode, house_type, bedroom, bathroom, parking, land_size, 
-                        floor_area, year_built, sold_price, sold_date, agency, latitude, longitude, link, time) 
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())""".format(state)
-                    val = (house_id, REA_id, address, suburb, post_code, housetype, bedroom, bathroom, parking, land_size, 
-                            floor_area, year_built, soldprice, solddate, agency, latitude, longitude, house_url)
-                    cursor.execute(sql, val)
-                    con.commit()
-                    house_count = house_count + 1
-                    print(house_count, datetime.now())
-                except:
-                    if update:
-                        nextpage = None
-                        break
-                    else:
-                        file = open('url_with_problem.log', 'a')
-                        file.write(house_url + '\n')
-                        print('error', datetime.now())
-                        continue
+            noLinks = len(houselinks)
+            if noLinks == 0:
+                print('Postcode {:d} has no sold houses!'.format(postcode), datetime.now())
+                break
+            noThread = min([5, noLinks])
+            with Pool(noThread) as p:
+                p.map(partial(getHouseInfo,postcode=postcode,state=state,start_date=start_date), houselinks)
+
+            '''for houselink in houselinks:
+                getHouseInfo(houselink, postcode, state, start_date)'''
+
             if nextpage is not None:
                 page = page + 1
             else:
+                print('Postcode {:d} done! Total: {:d} pages!'.format(postcode, page), datetime.now())
                 break
-    cursor.close()
-    con.close()
-    print('Mission completed!!!')
+    print(state + ' completed!!!', datetime.now())
 
-# scrape latest sold data
-def update():
-    main('australian_capital_territory', True)
-    main('new_south_wales', True)
-    main('northern_territory', True)
-    main('queensland', True)
-    main('south_australia', True)
-    main('tasmania', True)
-    main('victoria', True)
-    main('western_australia', True)
-
-# add land_size floor_area year_built method1 (using address to generate url)
-def addLandInfo1(state):
-    # connect mySQL database
+# get house info
+def getHouseInfo(houselink, postcode, state, start_date):
+    error = 0
+    house_url = 'https://www.realestate.com.au' + houselink
     try:
-        con=mysql.connector.connect(user='root',password='asdfghjkl;\'',database='aus_sold_houses')
-        print("Database connected sucessfully!")
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Something is wrong with your user name or password")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Database does not exist")
-        else:
-            print(err)
-        exit()
-    sql = """ SELECT house_id, address, suburb, postcode, id FROM {}
-            WHERE land_size is null
-            ORDER BY id""".format(state)
-    select_cursor = con.cursor(dictionary=True, buffered=True)
-    update_cursor = con.cursor()
-    select_cursor.execute(sql)
-    while True:
-        address = select_cursor.fetchone()
-        if address == None:
-            break
-        url = createHouseUrl1(address['address'], address['suburb'], address['postcode'], True)
-        land_info = LandInfo(url)
-        if land_info.status_code == 200:
-            page_exist = land_info.soup.find('table', attrs={'class':'info-table'})
-            if page_exist is None:
-                url = createHouseUrl1(address['address'], address['suburb'], address['postcode'], False)
-                land_info = LandInfo(url)
-                if land_info.status_code == 400:
-                    print('ip interrupted', land_info.header_no, datetime.now())
-                    break
-            land_size, floor_area, year_built = land_info.getLandInfo()
-            print(land_info.getLandInfo(), url, datetime.now())
-            # save to mySQL database
-            insert_sql = """UPDATE {} SET land_size = %s
-                WHERE house_id = %s""".format(state)
-            insert_val = (land_size, address['house_id'])
-            update_cursor.execute(insert_sql, insert_val)
-            insert_sql = """UPDATE {} SET floor_area = %s
-                WHERE house_id = %s""".format(state)
-            insert_val = (floor_area, address['house_id'])
-            update_cursor.execute(insert_sql, insert_val)
-            insert_sql = """UPDATE {} SET year_built = %s
-                WHERE house_id = %s""".format(state)
-            insert_val = (year_built, address['house_id'])
-            update_cursor.execute(insert_sql, insert_val)
-            con.commit()
-            time.sleep(0.001)
-        elif land_info.status_code == 400:
-            print('ip interrupted', land_info.header_no, datetime.now())
-            break
-    select_cursor.close()
-    update_cursor.close()
-    con.close()
-    print('Mission completed!!!')
-
-# add land_size floor_area year_built method1 (using REA_id to generate url)
-def addLandInfo2(state):
-    # connect mySQL database
-    try:
-        con=mysql.connector.connect(user='root',password='asdfghjkl;\'',database='aus_sold_houses')
-        print("Database connected sucessfully!")
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Something is wrong with your user name or password")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Database does not exist")
-        else:
-            print(err)
-        exit()
-    sql = """ SELECT id, house_id, REA_id FROM {}
-            WHERE land_size is null AND REA_id is not null
-            ORDER BY id""".format(state)
-    select_cursor = con.cursor(dictionary=True, buffered=True)
-    update_cursor = con.cursor()
-    select_cursor.execute(sql)
-    while True:
-        REAID = select_cursor.fetchone()
-        if REAID == None:
-            break
-        url = createHouseUrl2(REAID['REA_id'])
+        connection_object = connection_pool.get_connection()
+        if connection_object.is_connected():
+            cursor = connection_object.cursor()
         while True:
             try:
-                land_info = LandInfo(url)
+                house = ExtractHouseURL(house_url, randrange(23))
                 break
             except:
-                time.sleep(5)
+                time.sleep(1)
                 continue
-        if land_info.status_code == 200:
-            url = land_info.redir_url
+        history_url = house.getHistoryURL()
+        if history_url is not None:
             while True:
                 try:
-                    land_info = LandInfo(url)
+                    house_history = ExtractHouseInfo(history_url, randrange(23))
                     break
                 except:
-                    time.sleep(5)
+                    time.sleep(1)
                     continue
-            if land_info.status_code == 200:
-                land_size, floor_area, year_built = land_info.getLandInfo()
-                print(REAID['id'], land_info.getLandInfo(), url, datetime.now())
-                # save to mySQL database
-                insert_sql = """UPDATE {} SET land_size = %s
-                    WHERE house_id = %s""".format(state)
-                insert_val = (land_size, REAID['house_id'])
-                update_cursor.execute(insert_sql, insert_val)
-                insert_sql = """UPDATE {} SET floor_area = %s
-                    WHERE house_id = %s""".format(state)
-                insert_val = (floor_area, REAID['house_id'])
-                update_cursor.execute(insert_sql, insert_val)
-                insert_sql = """UPDATE {} SET year_built = %s
-                    WHERE house_id = %s""".format(state)
-                insert_val = (year_built, REAID['house_id'])
-                update_cursor.execute(insert_sql, insert_val)
-                con.commit()
-                time.sleep(0.001)
-            elif land_info.status_code == 400:
-                print('ip interrupted', land_info.header_no, datetime.now())
-                break
-        elif land_info.status_code == 400:
-            print('ip interrupted', land_info.header_no, datetime.now())
-            break
-    select_cursor.close()
-    update_cursor.close()
-    con.close()
-    print('Mission completed!!!')
-
-# add REA_property_id
-def addREAID(state):
-    # connect mySQL database
-    try:
-        con=mysql.connector.connect(user='root',password='asdfghjkl;\'',database='aus_sold_houses')
-        print("Database connected sucessfully!")
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Something is wrong with your user name or password")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Database does not exist")
+            address, suburb, post_code = house_history.getAddress()
+            if post_code != postcode:
+                return
+            solddate = house.getSoldDate()
+            if solddate is not None and solddate < start_date:
+                return
+            house_id = house.getHouseID()
+            soldprice = house.getSoldPrice()
+            agency = house.getAgency()
+            bedroom, bathroom, parking = house.getFeatures()
+            housetype = house_history.getHouseType()
+            latitude, longitude = house_history.getLocation()
+            REA_id = house_history.getREAID()
+            land_size, floor_area, year_built = house_history.getLandInfo()
         else:
-            print(err)
-        exit()
-    sql = """ SELECT id, link FROM {}
-            WHERE REA_id is null
-            ORDER BY id""".format(state)
-    select_cursor = con.cursor(dictionary=True, buffered=True)
-    update_cursor = con.cursor()
-    select_cursor.execute(sql)
-    while True:
-        link = select_cursor.fetchone()
-        if link == None:
-            break
-        url = link['link']
+            address, suburb, post_code = house.getAddress()
+            if post_code != postcode:
+                return
+            solddate = house.getSoldDate()
+            if solddate is not None and solddate < start_date:
+                return
+            house_id = house.getHouseID()
+            soldprice = house.getSoldPrice()
+            agency = house.getAgency()
+            bedroom, bathroom, parking = house.getFeatures()
+            housetype = house.getHouseType()
+            latitude, longitude = house.getLocation()
+            REA_id = None
+            land_size = house.getLandSize()
+            floor_area = 0
+            year_built = 0
+
+        # set an error tracking flag
+        error = 1
+
+        # save to mySQL database
+        sql = """INSERT INTO {} (
+            house_id, REA_id, address, suburb, postcode, house_type, bedroom, bathroom, parking, land_size, 
+            floor_area, year_built, sold_price, sold_date, agency, latitude, longitude, link, time) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())""".format(state)
+        val = (house_id, REA_id, address, suburb, post_code, housetype, bedroom, bathroom, parking, land_size, 
+                floor_area, year_built, soldprice, solddate, agency, latitude, longitude, house_url)
+        cursor.execute(sql, val)
+
+    except:
+        if error == 0: # error happens during URL extraction
+            print('error happens', datetime.now())
+            file = open('./error log/'+state+'_error.log', 'a')
+            file.write(house_url + '\n')
+        return
+
+    finally:
+        print(postcode, datetime.now())
+        #closing database connection.
+        if(connection_object.is_connected()):
+            cursor.close()
+            connection_object.close()
+    
+# deal with error logs
+def handle_error(state):
+    print('Start ' + state)
+    file_name = './error log/{}_error.log'.format(state)
+    try:
+        f = open(file_name, 'r')
+    except:
+        print('{} has no errors. All done!'.format(state))
+        return
+    houselinks = [url for url in f]
+    '''noLinks = len(houselinks)
+    noThread = min([5, noLinks])
+    with Pool(noThread) as p:
+        p.map(partial(getHouseInfo1,state=state), houselinks)'''
+
+    for houselink in houselinks:
+        getHouseInfo1(houselink, state)
+
+    print(state + ' completed!!!', datetime.now())
+
+# get house info
+def getHouseInfo1(houselink, state):
+    error = 0
+    house_url = houselink.replace('\n', '')
+    try:
+        connection_object = connection_pool.get_connection()
+        if connection_object.is_connected():
+            cursor = connection_object.cursor()
+
         while True:
             try:
-                house = House(url)
+                house = ExtractHouseURL(house_url, randrange(23))
                 break
             except:
-                time.sleep(5)
+                time.sleep(1)
                 continue
-        REA_id = house.getREAID()
-        print(state, link['id'], REA_id, datetime.now())
+        history_url = house.getHistoryURL()
+        if history_url is not None:
+            while True:
+                try:
+                    house_history = ExtractHouseInfo(history_url, randrange(23))
+                    break
+                except:
+                    time.sleep(1)
+                    continue
+            address, suburb, post_code = house_history.getAddress()
+            solddate = house.getSoldDate()
+            house_id = house.getHouseID()
+            soldprice = house.getSoldPrice()
+            agency = house.getAgency()
+            bedroom, bathroom, parking = house.getFeatures()
+            housetype = house_history.getHouseType()
+            latitude, longitude = house_history.getLocation()
+            REA_id = house_history.getREAID()
+            land_size, floor_area, year_built = house_history.getLandInfo()
+        else:
+            address, suburb, post_code = house.getAddress()
+            solddate = house.getSoldDate()
+            house_id = house.getHouseID()
+            soldprice = house.getSoldPrice()
+            agency = house.getAgency()
+            bedroom, bathroom, parking = house.getFeatures()
+            housetype = house.getHouseType()
+            latitude, longitude = house.getLocation()
+            REA_id = None
+            land_size = house.getLandSize()
+            floor_area = 0
+            year_built = 0
+
+        # set an error tracking flag
+        error = 1
+
         # save to mySQL database
-        if REA_id is not None:
-            insert_sql = """UPDATE {} SET REA_id = %s
-                WHERE id = %s""".format(state)
-            insert_val = (REA_id, link['id'])
-            update_cursor.execute(insert_sql, insert_val)
-            con.commit()
-    select_cursor.close()
-    update_cursor.close()
-    con.close()
-    print('Mission completed!!!')
+        sql = """INSERT INTO {} (
+            house_id, REA_id, address, suburb, postcode, house_type, bedroom, bathroom, parking, land_size, 
+            floor_area, year_built, sold_price, sold_date, agency, latitude, longitude, link, time) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())""".format(state)
+        val = (house_id, REA_id, address, suburb, post_code, housetype, bedroom, bathroom, parking, land_size, 
+                floor_area, year_built, soldprice, solddate, agency, latitude, longitude, house_url)
+        cursor.execute(sql, val)
 
-# test network connection
-def testConnection():
-    while True:
-        url = createHouseUrl2(4150215)
-        land_info = LandInfo(url)
-        if land_info.status_code == 200:
-            url = land_info.redir_url
-            land_info = LandInfo(url)
-            if land_info.status_code == 200:
-                print(land_info.header_no, land_info.getLandInfo(), datetime.now())
-                time.sleep(0.001)
-            elif land_info.status_code == 400:
-                break
-        elif land_info.status_code == 400:
-            break
-    verification_code = land_info.soup.find('div', attrs={'id':'challengeQuestion'}).text
-    verification_code = re.search('[0-9]+', verification_code).group()
-    print(land_info.header_no, verification_code)
+    except:
+        if error == 0: # error happens during URL extraction
+            print('error happens', datetime.now())
+            file = open('./error log/'+state+'_error_1.log', 'a')
+            file.write(house_url + '\n')
+        return
 
-if __name__ == '__main__':
-    update()
-    #addLandInfo2('western_australia')
+    finally:
+        print(datetime.now())
+        #closing database connection.
+        if(connection_object.is_connected()):
+            cursor.close()
+            connection_object.close()
+
+# scrape latest sold data
+def update(date):
+    main('australian_capital_territory', date)
+    main('new_south_wales', date)
+    main('northern_territory', date)
+    main('queensland', date)
+    main('south_australia', date)
+    main('tasmania', date)
+    main('victoria', date)
+    main('western_australia', date)
+
+def retry_error():
+    handle_error('australian_capital_territory')
+    handle_error('new_south_wales')
+    handle_error('northern_territory')
+    handle_error('queensland')
+    handle_error('south_australia')
+    handle_error('tasmania')
+    handle_error('victoria')
+    handle_error('western_australia')
+
+if __name__ == '__main__': 
+    update(datetime(2020, 11, 19))
+    #retry_error()

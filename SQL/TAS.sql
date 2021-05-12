@@ -1,4 +1,5 @@
 SELECT * FROM aus_sold_houses.tasmania
+where sold_date is null
 ORDER BY id DESC;
 
 SET SQL_SAFE_UPDATES = 0;

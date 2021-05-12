@@ -24,7 +24,7 @@ plt.rc('legend', fontsize=12)
 
 # connect mySQL database
 try:
-    con=mysql.connector.connect(user='root',password='asdfghjkl;\'',database='aus_sold_houses')
+    con=mysql.connector.connect(user='root',password='1LoveBMW',database='aus_sold_houses')
     print("Database connected sucessfully!")
 except mysql.connector.Error as err:
     if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -44,14 +44,14 @@ def get_avg_price(state, house_type):
             WHERE sold_date is not null and sold_price is not null AND YEAR(sold_date) > 2007
             AND sold_price < 100000000 and sold_price > 10000 AND
             (LOWER(house_type) LIKE 'house' OR LOWER(house_type) LIKE 'townhouse' OR LOWER(house_type) LIKE 'unit')
-            GROUP BY YEAR(sold_date)""".format(state)  
+            GROUP BY YEAR(sold_date) ORDER BY YEAR(sold_date)""".format(state)
     elif house_type == 'apartment':
         sql = """ SELECT COUNT(*) AS total_sold, AVG(sold_price) as avg_price, 
             YEAR(sold_date) as year FROM {}
             WHERE sold_date is not null and sold_price is not null AND YEAR(sold_date) > 2007
             AND sold_price < 100000000 and sold_price > 10000 AND
             (LOWER(house_type) LIKE 'apartment' OR LOWER(house_type) LIKE 'studio' OR LOWER(house_type) LIKE 'flat')
-            GROUP BY YEAR(sold_date)""".format(state)
+            GROUP BY YEAR(sold_date) ORDER BY YEAR(sold_date)""".format(state)
     cursor = con.cursor(dictionary=True, buffered=True)
     cursor.execute(sql)    
     avg_price = []
@@ -69,8 +69,9 @@ def get_avg_price(state, house_type):
 def get_landsize(state):
     # select data from database
     sql = """ SELECT land_size, sold_price FROM {}
-        WHERE land_size > 0 AND sold_price is not null 
-        AND sold_price < 10000000 and sold_price > 100000 AND 
+        WHERE land_size > 0 AND land_size < 500 AND sold_price is not null 
+        AND sold_price < 1000000 and sold_price > 100000 AND 
+        postcode = 3149 AND
         (LOWER(house_type) LIKE 'house' OR LOWER(house_type) LIKE 'townhouse' OR LOWER(house_type) LIKE 'unit')
         """.format(state)  
     cursor = con.cursor(dictionary=True, buffered=True)
@@ -86,14 +87,6 @@ def get_landsize(state):
     cursor.close()
     return np.asarray(land_size), np.asarray(sold_price)
 
-land_size, sold_price = get_landsize('victoria')
-plt.plot(land_size, sold_price/1000, 'b.')
-plt.title('Price vs Land_Size (Victoria)')
-plt.xlabel('Land size [m^2]')
-plt.ylabel('Sold price [AU k$]')
-plt.grid()
-plt.show()
-'''
 # get aveage sold price for different states
 year_act, avg_price_house_act = get_avg_price('australian_capital_territory', 'house')
 year_act, avg_price_apart_act = get_avg_price('australian_capital_territory', 'apartment')
@@ -111,7 +104,6 @@ year_vic, avg_price_house_vic = get_avg_price('victoria', 'house')
 year_vic, avg_price_apart_vic = get_avg_price('victoria', 'apartment')
 year_wa, avg_price_house_wa = get_avg_price('western_australia', 'house')
 year_wa, avg_price_apart_wa = get_avg_price('western_australia', 'apartment')
-con.close()
 
 # plot data and save as image
 fig = plt.figure(figsize=(18, 10))
@@ -155,7 +147,7 @@ ax_wa.grid()
 plt.subplots_adjust(hspace = 0.5)
 plt.subplots_adjust(wspace = 0.3)
 #plt.show()
-img_name = 'price1.png'
+img_name = './Results/price1.png'
 fig.savefig(img_name, bbox_inches="tight", pad_inches=0)
 plt.close(fig)
 
@@ -201,7 +193,7 @@ ax_nt.grid()
 plt.subplots_adjust(hspace = 0.5)
 plt.subplots_adjust(wspace = 0.3)
 #plt.show()
-img_name = 'price2.png'
+img_name = './Results/price2.png'
 fig.savefig(img_name, bbox_inches="tight", pad_inches=0)
 plt.close(fig)
 
@@ -242,6 +234,20 @@ ax_apart.grid()
 plt.subplots_adjust(hspace = 0.5)
 plt.subplots_adjust(wspace = 0.3)
 #plt.show()
-img_name = 'price3.png'
+img_name = './Results/price3.png'
 fig.savefig(img_name, bbox_inches="tight", pad_inches=0)
-plt.close(fig)'''
+plt.close(fig)
+
+# price vs landsize in VIC
+land_size, sold_price = get_landsize('victoria')
+fig = plt.figure(figsize=(18, 10))
+plt.plot(land_size, sold_price/1000, 'b.')
+plt.title('Price vs Land_Size (Victoria)')
+plt.xlabel('Land size [m^2]')
+plt.ylabel('Sold price [AU k$]')
+plt.grid()
+img_name = './Results/price4.png'
+fig.savefig(img_name, bbox_inches="tight", pad_inches=0)
+plt.close(fig)
+
+con.close()
