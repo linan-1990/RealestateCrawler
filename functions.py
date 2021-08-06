@@ -86,7 +86,10 @@ def get_cookie(url, user_agent):
     options.add_argument("--window-size=100x100")
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
-    driver = webdriver.Chrome(options=options)
+    try:
+        driver = webdriver.Chrome(options=options)
+    except:
+        print('Update ChromeDriver')
     driver._orig_get = driver.get
     def _get_wrapped(*args, **kwargs):
         if driver.execute_script("return navigator.webdriver"):
@@ -143,11 +146,13 @@ def get_cookie(url, user_agent):
     time.sleep(1) # wait for cookies loaded
     for request in driver.requests:
         if request.response.status_code == 200:
-            cookie = re.search(r"(bm_aksd=[\S]+);", str(request.response.headers))
+            cookie = re.search(r"(bm_sdfr=[\S]+);", str(request.response.headers))
             if cookie is not None:
                 cookie = cookie.group(1)
                 break
     driver.quit()
+    if cookie is None:
+        raise ValueError('Change cookie name and retry!')
     return cookie
 
 def update_cookie(old, new):

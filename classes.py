@@ -76,10 +76,12 @@ class ExtractHouseURL(Request):
         return solddate
     
     def getAgency(self):
-        agency = self.soup.findAll('h2', attrs={'class':'Text__Typography-zot5yv-0 gNxSNO Text__H2-zot5yv-2 View__ResponsiveTitle-sc-1acasn6-0 dZJCCR'})
+        agency = self.soup.findAll('a', attrs={'class':'LinkBase-isu7ow-0 gJQMoL sidebar-traffic-driver__name'})
         num = len(agency)
-        if agency[num-1] is not None:
-            agency = agency[num-1].text[17:]
+        if num > 0 and agency[num-1] is not None:
+            agency = agency[num-1].text
+        else:
+            agency = None
         return agency
 
     def getAddress(self):
