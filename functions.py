@@ -83,14 +83,16 @@ def createHouseUrl2(REA_id):
 
 def get_cookie(url, user_agent):
     options = webdriver.ChromeOptions()
+    options.add_argument('user-agent={}'.format(user_agent))
     options.add_argument("--window-size=100x100")
+    options.add_argument('ignore-certificate-errors')
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
     try:
         driver = webdriver.Chrome(options=options)
     except:
         print('Update ChromeDriver')
-    driver._orig_get = driver.get
+    '''driver._orig_get = driver.get
     def _get_wrapped(*args, **kwargs):
         if driver.execute_script("return navigator.webdriver"):
             driver.execute_cdp_cmd(
@@ -132,7 +134,7 @@ def get_cookie(url, user_agent):
                                 get: () => 1
                         })"""
         },
-    )
+    )'''
 
     def interceptor(request):
         del request.headers['user-agent']
@@ -141,18 +143,24 @@ def get_cookie(url, user_agent):
         if request.path.endswith(('.png', '.jpg', '.gif')):
             request.abort()
 
-    driver.request_interceptor = interceptor
+    #driver.request_interceptor = interceptor
     driver.get(url)
-    time.sleep(1) # wait for cookies loaded
+    driver.execute_script("window.open('{}');".format(url))
+    time.sleep(4) # wait for cookies loaded
+    cnt = 0
     for request in driver.requests:
         if request.response.status_code == 200:
-            cookie = re.search(r"(bm_sdfr=[\S]+);", str(request.response.headers))
+            cookie = re.search(r"(KP2_UIDz-ssn=[\S]+);", str(request.response.headers))
             if cookie is not None:
                 cookie = cookie.group(1)
-                break
-    driver.quit()
+                cnt = cnt + 1
+                if cnt > 3:
+                    break
     if cookie is None:
-        raise ValueError('Change cookie name and retry!')
+        print('Change cookie name and retry!')
+    
+    driver.quit()
+
     return cookie
 
 def update_cookie(old, new):

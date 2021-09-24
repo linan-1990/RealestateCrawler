@@ -19,14 +19,14 @@ os.chdir(os.path.dirname(__file__))
 url = 'https://www.realestate.com.au/sold/in-glen+waverley,+vic+3150%3b/list-1?includeSurrounding=false'
 
 def update_header():
-    for i in range(23):
+    for i in range(7):
         print("update cookie {}".format(i))
         update_cookie(headers[i]["cookie"], get_cookie(url, headers[i]["user-agent"]))
 
 def test_func():
     while True:
         try:
-            list_page = ExtractListPage(url, randrange(23))
+            list_page = ExtractListPage(url, randrange(7))
             break
         except:
             continue
@@ -35,7 +35,7 @@ def test_func():
     house_url = 'https://www.realestate.com.au' + houselink
     while True:
         try:
-            house = ExtractHouseURL(house_url, randrange(23))
+            house = ExtractHouseURL(house_url, randrange(7))
             break
         except:
             time.sleep(1)
@@ -44,7 +44,7 @@ def test_func():
     if history_url is not None:
         while True:
             try:
-                house_history = ExtractHouseInfo(history_url, randrange(23))
+                house_history = ExtractHouseInfo(history_url, randrange(7))
                 break
             except:
                 time.sleep(1)
@@ -79,7 +79,7 @@ def test_func():
 
 def test_connection():
     i = -1
-    while i < 22:
+    while i < 6:
         i = i + 1
         print("test cookie {}".format(i))
         try:

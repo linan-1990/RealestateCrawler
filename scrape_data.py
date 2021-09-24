@@ -56,7 +56,7 @@ def main(state, start_date):
             url = createUrl(postcode, page)
             while True:
                 try:
-                    list_page = ExtractListPage(url, randrange(23))
+                    list_page = ExtractListPage(url, randrange(7))
                     break
                 except:
                     time.sleep(1)
@@ -71,7 +71,7 @@ def main(state, start_date):
             if noLinks == 0:
                 print('Postcode {:d} has no sold houses!'.format(postcode), datetime.now())
                 break
-            noThread = min([5, noLinks])
+            noThread = min([3, noLinks])
             with Pool(noThread) as p:
                 p.map(partial(getHouseInfo,postcode=postcode,state=state,start_date=start_date), houselinks)
 
@@ -95,7 +95,7 @@ def getHouseInfo(houselink, postcode, state, start_date):
             cursor = connection_object.cursor()
         while True:
             try:
-                house = ExtractHouseURL(house_url, randrange(23))
+                house = ExtractHouseURL(house_url, randrange(7))
                 break
             except:
                 time.sleep(1)
@@ -104,7 +104,7 @@ def getHouseInfo(houselink, postcode, state, start_date):
         if history_url is not None:
             while True:
                 try:
-                    house_history = ExtractHouseInfo(history_url, randrange(23))
+                    house_history = ExtractHouseInfo(history_url, randrange(7))
                     break
                 except:
                     time.sleep(1)
@@ -198,7 +198,7 @@ def getHouseInfo1(houselink, state):
 
         while True:
             try:
-                house = ExtractHouseURL(house_url, randrange(23))
+                house = ExtractHouseURL(house_url, randrange(7))
                 break
             except:
                 time.sleep(1)
@@ -207,7 +207,7 @@ def getHouseInfo1(houselink, state):
         if history_url is not None:
             while True:
                 try:
-                    house_history = ExtractHouseInfo(history_url, randrange(23))
+                    house_history = ExtractHouseInfo(history_url, randrange(7))
                     break
                 except:
                     time.sleep(1)
@@ -284,5 +284,5 @@ def retry_error():
     handle_error('western_australia')
 
 if __name__ == '__main__': 
-    update(datetime(2021, 7, 1))
+    update(datetime(2021, 9, 1))
     #retry_error()

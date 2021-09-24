@@ -20,7 +20,7 @@ class Request:
         for r in resp.history:
             self.redir_url = r.headers['Location']
         self.status_code = resp.status_code
-        if self.status_code != 200:
+        if self.status_code != 200 or resp.text == '':
             print("{}, {}".format(randnum, self.status_code))
             # update cookie in memory and on disk
             cookie = get_cookie(url, headers[randnum]["user-agent"])
