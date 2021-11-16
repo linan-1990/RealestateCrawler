@@ -156,6 +156,8 @@ def getHouseInfo(houselink, postcode, state, start_date):
     except:
         if error == 0: # error happens during URL extraction
             print('error happens', datetime.now())
+            if not os.path.exists('./error log'):
+                os.makedirs('./error log')
             file = open('./error log/'+state+'_error.log', 'a')
             file.write(house_url + '\n')
         return
@@ -284,5 +286,5 @@ def retry_error():
     handle_error('western_australia')
 
 if __name__ == '__main__': 
-    update(datetime(2021, 9, 1))
+    update(datetime(2021, 10, 1))
     #retry_error()

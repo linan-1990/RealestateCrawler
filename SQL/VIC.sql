@@ -1,6 +1,6 @@
 SELECT * FROM aus_sold_houses.victoria
 WHERE time > '2020-05-28 00:00:00'
-ORDER BY sold_date DESC;
+ORDER BY id DESC;
 
 SELECT YEAR(sold_date) as year, COUNT(*) AS total_sold, AVG(sold_price) as avg_price
 FROM aus_sold_houses.victoria
