@@ -76,7 +76,7 @@ class ExtractHouseURL(Request):
         return solddate
     
     def getAgency(self):
-        agency = self.soup.findAll('a', attrs={'class':'LinkBase-sc-12oy0hl-0 kQwmPc sidebar-traffic-driver__name'})
+        agency = self.soup.findAll('a', attrs={'class':'LinkBase-sc-12oy0hl-0 elxjgc sidebar-traffic-driver__name'})
         num = len(agency)
         if num > 0 and agency[num-1] is not None:
             agency = agency[num-1].text
@@ -104,7 +104,8 @@ class ExtractHouseURL(Request):
         bathroom = 0
         parking = 0
         feature_str = ''
-        for feature in self.soup.findAll('li', attrs={'class':'general-features__feature'}):
+        
+        for feature in self.soup.findAll('div', attrs={'class':'View__PropertyDetail-sc-1ch8bi6-0 uHVmQ'}):
             feature_str = feature_str + feature.get('aria-label')
         bed = re.search(r'[0-9]+\sbedroom', feature_str)
         if bed is not None:
