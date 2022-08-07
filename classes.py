@@ -128,7 +128,7 @@ class ExtractHouseURL(Request):
         return latitude, longitude
 
     def getLandSize(self):
-        land_size  = self.soup.find('span', attrs={'class':'property-size__icon property-size__land'})
+        land_size  = self.soup.find('div', attrs={'class':'View__PropertySize-sc-1bf6l7y-0 bAbtK property-size'})
         if land_size is not None:
             land_size = re.search(r'[0-9|.|,]+', land_size.text).group().replace(',','')
             land_size = int(float(land_size))
