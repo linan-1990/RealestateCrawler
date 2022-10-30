@@ -9,36 +9,36 @@ headers = [
     {
         # Chrome Windows
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.54 Safari/537.36',
-        'cookie': 'KP2_UIDz-ssn=0Gr7FVXOMUpeRT15gHnB8AQgbO2NbjVWen9YJPByLbd2GgDVmAoBajZokWIAXVl63yclLARUXLjg1zyz3QrRGnzAoMu4Lcbt1Gm25fCitpWrJVSSQiFNkhFvvrkmURoQczitP8elBp6m5XDc3wNz4Nqn9'
+        'cookie': 'KP2_UIDz-ssn=02yrsorpalroIAmwIbMuVSLbALrow5aXXbi7xAqrX8tetbZCRne6zWypdXOW9hyBS3DyIKEoE5UEtok7nfeOwV5J0eT4axJ4HIOxQlETtYm2ypt5sJ8gNjWOoyPE9f68ddj38BBb6EoCHyGkQ8rZ0Yqtf9z'
     },
     {
         # Firefox Windows
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:70.0) Gecko/20100101 Firefox/70.0',
-        'cookie': 'KP2_UIDz-ssn=0Cs0WyemR73ShX3lvecl7WKJDuCzmz4GbOiiVt94NI8WW45kAouvEGeyxulsavi7XMjt7VX3PjeKOLV3iqdPpsffD1KOJrJ4SM7KERf7tFz70EahgBv5pJIBY8XPyfTlPeFPyg7ZsW6hvNF5faXRADLh0'
+        'cookie': 'KP2_UIDz-ssn=02v0LbxMV7r8py0UoJOsB1kTUlKqMU3JUhS1KdDwFO8VoP30dfIlGrpwTpk2iRTFiXz7rSsLlYtqmlRPw8mkBNdLbib2gj42zAsoDnLWHjQZGOcic5D67qGveSSusAvIiOKU6Dw3Q4Rt8vP0ZyatR9w7Ct5'
     },
     {
         # IE11
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko',
-        'cookie': 'KP2_UIDz-ssn=0LiahIkzmm97sVy80GWfKVGtYExNI23x3KFmoMiGwpOfxNQ99uQ1aLRYw5d6myc9p0GyNtsDYPNCh7gVkSuDkZYKqs4mLUDU7iH7xox6rnm9jCsJW5wGoQkPaIrj535LeTT4rGkfS1BGM239jBZyTJQGN'
+        'cookie': 'KP2_UIDz-ssn=03ObtceoCqt4w1tLW2FV34T7dlYVFCWuYKUJQdKFKlJtkztG9xYGX18Wo9QOWfdj5YBu9sFGB8Rc1xx05nl9gE5GkmQAFkvofoAKCTLpgk6OAZR571dh7YuvXKWuXFX6YVpiX62XB1X5FTJJ5wD918EjTFb'
     },
     {
         # IE10
         'user-agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)',
-        'cookie': 'KP2_UIDz-ssn=0GLpfj7bpsi21DGuz8KW3wV6V5V1VHdpEGVcE6vPOycJuvifjqd0lteWgY51vkKsM28qp1pxFViCWPmdh4vjl7hVRRSyYXlnSXGiUuXcn2SRJHCSPswF3yZLsgSyLCZRcAmkz7E4Cw0bOx17hUKQ3I06B'
+        'cookie': 'KP2_UIDz-ssn=02peRIoXu2GH5z1J813P6hCbYexM2Gzup6LnLjUKgjRJjCSFkb70mhwklHUVECX2AhrHRJjR13270Xhjt34dTfhZ3Sf9XAYZEX8ulCPB6ttDM07xtbxv4pRzOhG11Xi6FiWhdOImPatF3dWBGaxU1MAg4w1'
     },
     {
         # IE8
         'user-agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)',
-        'cookie': 'KP2_UIDz-ssn=0IK7TzJzY5O1rNNRqNALGOhzBJEKDpYkHiugp4brvcsSQgKyYBGP06LrBYvuaWWALgrlCEWX4QuF6PSfc7wePAv36JXrfjKqiuzqfYL1mBcHeM1EuwO2aQpnTIHNUsHHIg0FFlzBjaTrarIm0i51xkbDZ'
+        'cookie': 'KP2_UIDz-ssn=02Hu03bZiq1MHZo67iIrriTbBdeshoKHiqSqLDFBUrbzBfAws92Tq5ktsjlE8DgeSQDSJokIhoCrGRGAFJ1sAvFNPkVcgDKjC8nwFwINFHFKxkpMKvGoAo4zE5XkAESbRbrtLarSaAfDV0nZeU0Dyb37XB5'
     },
     {
         # IE7
         'user-agent': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)',
-        'cookie': 'KP2_UIDz-ssn=0OR0RkyoeIFATU1ThtUcpd8pZpbTP2FYUBfnDZWSF2HudM2Cmqr90kl9kd4pUBxEBg8aoSCHxx1nvXAYS5o83nUpmPuHlIGZ1pRqcLhYGEQaucL17MSRD8TEMUiU5feP3026KmwKQly1e5HsDuDmoEoV8'
+        'cookie': 'KP2_UIDz-ssn=021gip7ZuslhPUPoo8ecTCgrIah4RXRsKNVpwDoC9hbtCXIy9LH2WhhABk0hNCIWKglaSqP2SaVTrs9zGgf8OYCySPuIuCkzMbJZng0KTzktNWBO7fRH3cU8fdb4NLoyszUGiHtGflyclCdStmoeOuFq08x'
     },
     {
         # Opera Windows
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36 OPR/65.0.3467.48',
-        'cookie': 'KP2_UIDz-ssn=0U6zJnJHrUgsqf3sAP1bmn1x6fXVSBUjHFahG7QcXrSwCX1LZWMlhYXoqfyot5tXcADnxHaKh7PVWOtXSjzjTei0aMl09lmCF9MPPiS3rkxCDGbEaOjIsSNraCE0T25ZuALhF3JSw216fNYxzfn9BZcNa'
+        'cookie': 'KP2_UIDz-ssn=02yMOBjrwfiPZuUc97NlA5jmhsduC2mz6KpPnjrnU5RaCfLF3ParXEugdkByII6BocMhscW36CltdWX3inEag75826qvFfdZq2nNMaUyzVaNddXMOzcf7QX4KYQKmiugpHrXj5fbEpl5iiT3MczixvNvNGP'
     }
 ]
