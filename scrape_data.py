@@ -286,5 +286,5 @@ def retry_error():
     handle_error('western_australia')
 
 if __name__ == '__main__': 
-    update(datetime(2022, 11, 15))
+    update(datetime(2022, 12, 10))
     #retry_error()
