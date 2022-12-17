@@ -76,7 +76,7 @@ class ExtractHouseURL(Request):
         return solddate
     
     def getAgency(self):
-        agency = self.soup.findAll('a', attrs={'class':'LinkBase-sc-12oy0hl-0 elxjgc sidebar-traffic-driver__name'})
+        agency = self.soup.findAll('a', attrs={'class':'LinkBase-sc-12oy0hl-0 kZtRHK sidebar-traffic-driver__name'})
         num = len(agency)
         if num > 0 and agency[num-1] is not None:
             agency = agency[num-1].text
@@ -105,7 +105,7 @@ class ExtractHouseURL(Request):
         parking = 0
         feature_str = ''
         
-        for feature in self.soup.findAll('div', attrs={'class':'View__PropertyDetail-sc-1ch8bi6-0 uHVmQ'}):
+        for feature in self.soup.findAll('div', attrs={'class':'View__PropertyDetail-sc-1ch8bi6-0 lcBSoW'}):
             feature_str = feature_str + feature.get('aria-label')
         bed = re.search(r'[0-9]+\sbedroom', feature_str)
         if bed is not None:
@@ -119,16 +119,16 @@ class ExtractHouseURL(Request):
         return bedroom, bathroom, parking
 
     def getLocation(self):
-        latitude = re.search(r'"latitude":-[0-9|.]+', self.text)
+        latitude = re.search(r'"latitude\\\\\\":-[0-9|.]+', self.text)
         if latitude is not None:
             latitude = -float(re.search(r'[0-9|.]+', latitude.group()).group())
-        longitude = re.search(r'"longitude":[0-9|.]+', self.text)
+        longitude = re.search(r'"longitude\\\\\\":[0-9|.]+', self.text)
         if longitude is not None:
             longitude = float(re.search(r'[0-9|.]+', longitude.group()).group())
         return latitude, longitude
 
     def getLandSize(self):
-        land_size  = self.soup.find('div', attrs={'class':'View__PropertySize-sc-1bf6l7y-0 bAbtK property-size'})
+        land_size  = self.soup.find('div', attrs={'class':'View__PropertySize-sc-1bf6l7y-0 ioIAxg property-size'})
         if land_size is not None:
             land_size = re.search(r'[0-9|.|,]+', land_size.text).group().replace(',','')
             land_size = int(float(land_size))

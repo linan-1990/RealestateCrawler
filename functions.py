@@ -150,7 +150,7 @@ def get_cookie(url, user_agent):
     cnt = 0
     for request in driver.requests:
         if request.response is not None and request.response.status_code == 200:
-            cookie = re.search(r"(KP2_UIDz-ssn=[\S]+);", str(request.response.headers))
+            cookie = re.search(r"(KP_UIDz-ssn=[\S]+);", str(request.response.headers))
             if cookie is not None:
                 cookie = cookie.group(1)
                 cnt = cnt + 1

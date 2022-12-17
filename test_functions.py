@@ -16,7 +16,7 @@ from classes import ExtractListPage, ExtractHouseURL, ExtractHouseInfo
 # change working directory to current folder
 os.chdir(os.path.dirname(__file__))
 
-url = 'https://www.realestate.com.au/sold/in-glen+waverley,+vic+3150%3b/list-1?includeSurrounding=false'
+url = 'https://www.realestate.com.au/sold/in-glen+waverley,+vic+3149%3b/list-1?includeSurrounding=false'
 
 def update_header():
     for i in range(7):
