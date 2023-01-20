@@ -76,7 +76,7 @@ class ExtractHouseURL(Request):
         return solddate
     
     def getAgency(self):
-        agency = self.soup.findAll('a', attrs={'class':'LinkBase-sc-12oy0hl-0 kZtRHK sidebar-traffic-driver__name'})
+        agency = self.soup.findAll('a', attrs={'class':'LinkBase-sc-12oy0hl-0 cZuyFH sidebar-traffic-driver__name'})
         num = len(agency)
         if num > 0 and agency[num-1] is not None:
             agency = agency[num-1].text
@@ -105,7 +105,7 @@ class ExtractHouseURL(Request):
         parking = 0
         feature_str = ''
         
-        for feature in self.soup.findAll('div', attrs={'class':'View__PropertyDetail-sc-1ch8bi6-0 lcBSoW'}):
+        for feature in self.soup.findAll('div', attrs={'class':'View__PropertyDetail-sc-11ysrk6-0 gIMwxl'}):
             feature_str = feature_str + feature.get('aria-label')
         bed = re.search(r'[0-9]+\sbedroom', feature_str)
         if bed is not None:
@@ -128,7 +128,7 @@ class ExtractHouseURL(Request):
         return latitude, longitude
 
     def getLandSize(self):
-        land_size  = self.soup.find('div', attrs={'class':'View__PropertySize-sc-1bf6l7y-0 ioIAxg property-size'})
+        land_size  = self.soup.find('div', attrs={'class':'View__PropertySizeGroup-sc-1psmy31-1 gGCxa-D property-size-group'})
         if land_size is not None:
             land_size = re.search(r'[0-9|.|,]+', land_size.text).group().replace(',','')
             land_size = int(float(land_size))
